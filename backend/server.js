@@ -17,6 +17,14 @@ app.use('/api/assessment', require('./routes/assessmentRoutes'))  // add this
 
 app.use('/api/roadmap', require('./routes/roadmapRoutes'))// add this
 
+app.use('/api/courses', require('./routes/courseRoutes'))
+app.use('/api/progress', require('./routes/progressRoutes'))
+
+// cron jobs
+const { Weeklystat } = require('./cron/weeklyStats')
+
+app.use('/api/admin', require('./routes/adminRoutes'))
+
 app.get('/', (req, res) => {
   res.send('API is running')
 })
