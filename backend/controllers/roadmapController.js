@@ -1,6 +1,8 @@
 const Groq = require('groq-sdk')
 const User = require('../models/User')
-const Roadmap = require('../models/Roadmap')
+const Roadmap = require('../models/roadmap')
+// const { emailQueue } = require('../queues/emailQueue')
+const { sendWelcomeEmail } = require('../utils/mailer')
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
@@ -16,6 +18,7 @@ const generateRoadmap = async (req, res) => {
     }
 
     const scores = user.metadata.scores
+    console.log(scores)
 
     // Step 2 - available course modules
     const availableModules = [
@@ -78,6 +81,7 @@ Return ONLY a valid JSON array, no extra text, no markdown:
       ],
       temperature: 0.3
     })
+    console.log('Step 3 - groq response received')
 
     const text = completion.choices[0].message.content
 
@@ -90,11 +94,17 @@ Return ONLY a valid JSON array, no extra text, no markdown:
       userId: req.user.id,
       modules
     })
+    console.log('About the user email:',user.email)
+   // send email directly
+  sendWelcomeEmail(user.email, user.name, roadmap)
+  .then(() => console.log('Email sent to:', user.email))
+  .catch(err => console.log('Email error:', err.message))
 
     res.status(201).json({
       message: 'Roadmap generated successfully',
       roadmap
     })
+
   } catch (error) {
     res.status(500).json({
       message: 'Server error',
@@ -116,5 +126,6 @@ const getRoadmap = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 }
+
 
 module.exports = { generateRoadmap, getRoadmap }

@@ -22,5 +22,4 @@ const Weeklystat = cron.schedule('0 7 * * 1', async ()=> {
         console.log('Cron error', error.message)
     }
 })
-
 module.exports = { Weeklystat }
