@@ -4,14 +4,11 @@ const User = require('../models/User')
 // GET questions
 const getQuestions = async (req, res) => {
   try {
-    const questions = await Question.find({}, {
+      const questions = await Question.find({}, {
       correctAnswer: 0  // hide correct answer from frontend
     })
 
-    res.status(200).json({
-      message: 'Questions fetched successfully',
-      questions
-    })
+    res.status(200).json({message: 'Questions fetched successfully',questions})
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message })
   }
@@ -22,14 +19,13 @@ const submitAssessment = async (req, res) => {
   const { answers } = req.body
   // answers format:
   // [ { questionId: "...", selectedAnswer: "..." } ]
-
   try {
     const questions = await Question.find()
 
     // Step 1 - calculate score per topic
     const topicStats = {}
 
-    for (const answer of answers) {
+    for (const answer of answers) { 
       const question = questions.find(
         q => q._id.toString() === answer.questionId
       )
