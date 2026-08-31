@@ -2,7 +2,7 @@ import { useState } from 'react'
 import api from '../services/api'
 
 function Register() {
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'user' })
+  const [formData, setFormData] = useState({ name: '', email: '', password: ''})
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -21,7 +21,7 @@ function Register() {
 
       //check role - admin goes to admin dashboard, User goes to assessment 
       const role = response.data.user.role
-      window.location.href = role === 'admin' ? '/admin': '/assessment'
+      window.location.href = role === 'admin' ? '/admin' : '/courses'
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed')
     } finally {
@@ -85,7 +85,7 @@ function Register() {
             </div>
 
             {/* role selector */}
-            <div>
+            {/* <div>
               <p className="text-[9px] font-bold tracking-[1.5px] uppercase text-white/30 mb-2">Role</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -105,7 +105,7 @@ function Register() {
                   <p className={`text-sm font-bold ${formData.role === 'admin' ? 'text-white' : 'text-white/30'}`}>Admin</p>
                 </button>
               </div>
-            </div>
+            </div> */}
 
             {error && <p className="text-red-400 text-xs">{error}</p>}
 
@@ -117,8 +117,6 @@ function Register() {
               {loading ? 'Creating account...' : 'Create account →'}
             </button>
           </form>
-          // after registration → go to course selection
-          window.location.href = role === 'admin' ? '/admin' : '/courses'
 
           <p className="text-center text-xs text-white/25 mt-6">
             Already have an account?{' '}
