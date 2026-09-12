@@ -6,6 +6,12 @@ const roadmapSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  // which course this roadmap belongs to
+  courseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+    default: null
+  },
   modules: [
     {
       topic: String,
@@ -23,5 +29,8 @@ const roadmapSchema = new mongoose.Schema({
     default: Date.now
   }
 }, { timestamps: true })
+
+// one roadmap per user per course
+roadmapSchema.index({ userId: 1, courseId: 1 }, { unique: true })
 
 module.exports = mongoose.model('Roadmap', roadmapSchema)

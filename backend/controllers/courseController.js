@@ -74,5 +74,64 @@ const getCourseWithModules = async (req, res) =>{
         return res.status(500).json({message:'Server Error', error : error.message})
     }
 } 
+// delete course
+const deleteCourse = async (req, res) => {
+  try {
+    const { courseId } = req.params
+    await Course.findByIdAndDelete(courseId)
+    await Module.deleteMany({ courseId })
+    res.status(200).json({ message: 'Course deleted successfully' })
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+}
 
-module.exports = { createCourse, addModule, getCourses, getCourseWithModules }
+// update course
+const updateCourse = async (req, res) => {
+  try {
+    const { courseId } = req.params
+    const { title, description, isPublished } = req.body
+    const course = await Course.findByIdAndUpdate(
+      courseId,
+      { title, description, isPublished },
+      { new: true }
+    )
+    res.status(200).json({ message: 'Course updated', course })
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+}
+
+// delete module
+const deleteModule = async (req, res) => {
+  try {
+    const { moduleId } = req.params
+    await Module.findByIdAndDelete(moduleId)
+    res.status(200).json({ message: 'Module deleted' })
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+}
+// admin — update module
+const updateModule = async (req, res) => {
+  try {
+    const { moduleId } = req.params
+    const { title, description, contentUrl, duration, order, skillTag, difficulty } = req.body
+
+    const module = await Module.findByIdAndUpdate(
+      moduleId,
+      { title, description, contentUrl, duration, order, skillTag, difficulty },
+      { new: true }
+    )
+
+    if (!module) {
+      return res.status(404).json({ message: 'Module not found' })
+    }
+
+    res.status(200).json({ message: 'Module updated', module })
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message })
+  }
+}
+
+module.exports = { createCourse, addModule, getCourses, getCourseWithModules, deleteCourse, updateCourse, deleteModule, updateModule }

@@ -23,5 +23,60 @@ const getDashboard = async (req, res) =>{
         res.status(500).json({ message: 'Server error', error: error.message })
     }
 }
+const getUsers = async (req, res) => {
+    try {
+        const users = await User.find().select('-password')
+        res.status(200).json({ users })
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message })
+    }
+}
+const getAdminUserWatchStats = async (req, res) => {
+  try {
+    console.log('==============================')
+    console.log('ADMIN USER PROGRESS')
+    console.log('Requested User ID:', req.params.userId)
+    console.log('Admin User:', req.user)
 
-module.exports = { getDashboard } 
+    const { userId } = req.params
+
+    const watchRecords = await WatchProgress.find({ userId })
+      .populate('moduleId', 'title skillTag duration')
+      .populate('courseId', 'title')
+
+    console.log('Watch Records:', watchRecords)
+
+    const totalWatchSeconds = watchRecords.reduce(
+      (sum, r) => sum + r.watchedSeconds,
+      0
+    )
+
+    const totalWatchMinutes = Math.round(totalWatchSeconds / 60)
+
+    const completedVideos = watchRecords.filter(
+      r => r.isCompleted
+    ).length
+
+    console.log('Total Watch Seconds:', totalWatchSeconds)
+    console.log('Total Watch Minutes:', totalWatchMinutes)
+    console.log('Completed Videos:', completedVideos)
+
+    res.status(200).json({
+      watchRecords,
+      totalWatchMinutes,
+      completedVideos,
+      totalModulesStarted: watchRecords.length
+    })
+
+  } catch (error) {
+
+    console.log('ADMIN USER PROGRESS ERROR:', error.message)
+    console.log('STACK:', error.stack)
+
+    res.status(500).json({
+      message: 'Server error',
+      error: error.message
+    })
+  }
+}
+module.exports = { getDashboard, getUsers,getAdminUserWatchStats } 

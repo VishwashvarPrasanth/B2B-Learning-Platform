@@ -278,11 +278,20 @@ const handleVideoUpload = async (moduleId, file) => {
   // ── fetch user progress ──
   const handleViewUserProgress = async (userId) => {
     setSelectedUser(userId)
-    try {
-      const res = await api.get(`/admin/users/${userId}/progress`, {
-        headers: { Authorization: `Bearer ${token}` }
+      try {
+        const res = await api.get(`/videos/admin/user/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`}
       })
-      setUserProgress(res.data)
+      console.log("ADMIN USER PROGRESS RESPONSE:", res.data)
+      setUserProgress({
+        percentage: res.data.totalModulesStarted > 0
+          ? Math.round((res.data.completedVideos / res.data.totalModulesStarted) * 100)
+          : 0,
+        completedModules: res.data.completedVideos,
+        totalModules: res.data.totalModulesStarted,
+        progressRecords: res.data.watchRecords
+      })
     } catch (err) {
       setError('Failed to fetch user progress')
     }
@@ -301,9 +310,11 @@ const handleVideoUpload = async (moduleId, file) => {
 
   // ── circular progress component ──
   const CircularProgress = ({ percentage, size = 80 }) => {
+    console.log("percentage received:", percentage)
     const radius = (size - 10) / 2
     const circumference = 2 * Math.PI * radius
-    const strokeDashoffset = circumference - (percentage / 100) * circumference
+    const safePercentage = Number(percentage) || 0
+    const strokeDashoffset = circumference - (safePercentage / 100) * circumference
 
     return (
       <svg width={size} height={size} className="rotate-[-90deg]">
@@ -325,7 +336,7 @@ const handleVideoUpload = async (moduleId, file) => {
           stroke="white"
           strokeWidth="6"
           strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
+          strokeDashoffset={0}
           strokeLinecap="round"
           style={{ transition: 'stroke-dashoffset 0.5s ease' }}
         />
@@ -495,7 +506,7 @@ const handleVideoUpload = async (moduleId, file) => {
                         <div className="border border-white/8 rounded-sm p-4 mb-4 flex items-center gap-6">
                           {/* circular progress ring */}
                           <div className="relative flex-shrink-0">
-                            <CircularProgress percentage={userProgress.percentage} size={80} />
+                            <CircularProgress percentage={userProgress.completedVideos > 0 ? 100 : 0} size={80} />
                             <div className="absolute inset-0 flex items-center justify-center">
                               <span className="text-white font-black text-sm">
                                 {userProgress.percentage}%
@@ -513,7 +524,7 @@ const handleVideoUpload = async (moduleId, file) => {
                               <span className="text-white/30 text-sm font-normal"> / {userProgress.totalModules} modules</span>
                             </p>
                             <p className="text-white/30 text-xs">
-                              {userProgress.totalModules - userProgress.completedModules} modules remaining
+                              {userProgress.totalModulesStarted - userProgress.completedVideos} modules remaining
                             </p>
                           </div>
                         </div>
@@ -525,7 +536,7 @@ const handleVideoUpload = async (moduleId, file) => {
                               // completed modules
                             </p>
                             <div className="flex flex-col gap-2">
-                              {userProgress.progressRecords.map(record => (
+                              {(userProgress.progressRecords || []).map(record => (
                                 <div
                                   key={record._id}
                                   className="flex items-center justify-between border border-white/6 rounded-sm px-3 py-2"
@@ -1045,7 +1056,7 @@ const handleVideoUpload = async (moduleId, file) => {
                       </div>
 
 
-                      {/* ── ADD ASSESSMENT SECTION HERE ── */}
+                      {/* assessment section per course */}
                       <div className="border-t border-white/6 pt-4 mt-4">
                         <div className="flex justify-between items-center mb-3">
                           <p className="text-[9px] font-bold tracking-[2px] uppercase text-white/20">
@@ -1101,14 +1112,13 @@ const handleVideoUpload = async (moduleId, file) => {
                                 <select
                                   value={questionForm.correctAnswer}
                                   onChange={e => setQuestionForm({ ...questionForm, correctAnswer: e.target.value })}
-                                  required
                                   className="w-full bg-[#080808] border border-white/10 rounded-sm px-3 py-2 text-white text-xs outline-none"
                                 >
                                   <option value="">Select correct</option>
                                   {['option1', 'option2', 'option3', 'option4'].map((key, i) => (
                                     questionForm[key] && (
                                       <option key={key} value={questionForm[key]}>
-                                        Option {i + 1}: {questionForm[key].slice(0, 25)}
+                                        Option {i + 1}: {questionForm[key].slice(0, 20)}
                                       </option>
                                     )
                                   ))}

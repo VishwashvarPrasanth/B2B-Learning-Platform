@@ -1,9 +1,6 @@
-// models == blueprint or template how actually it could structured
+const mongoose = require("mongoose")
 
-const mongoose = require('mongoose')
-// here we designed a schema 
-// major things to create type , required - used for it must be needed 
-// mongodb - supports multiple datatypes - String ,    => date, objectId , buffer - which specifically have in BSON 
+
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -26,6 +23,18 @@ const userSchema = new mongoose.Schema({
   metadata: {
     type: Object,
     default: {}
+  },
+  // tracks where user is in onboarding flow
+  onboardingStep: {
+    type: String,
+    enum: ['course_selection', 'assessment', 'completed'],
+    default: 'course_selection'
+  },
+  // which course they enrolled in during onboarding
+  onboardingCourseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+    default: null
   }
 }, { timestamps: true })
 

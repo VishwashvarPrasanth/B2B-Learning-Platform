@@ -17,49 +17,58 @@ function Login(){
         });
     };
 
-      const handleSubmit = async (e) => {
-        e.preventDefault()
-        setError('')
-        setLoading(true)
-        try {
-          const response = await api.post('/auth/login', formData)
-          localStorage.setItem('token', response.data.token)
-          localStorage.setItem('user', JSON.stringify(response.data.user))
+    const handleSubmit = async (e) => {
+      e.preventDefault()
+      setError('')
+      setLoading(true)
+      try {
+        const response = await api.post('/auth/login', {
+          email: formData.email,
+          password: formData.password
+          // don't send role to backend
+        })
 
-          const token = response.data.token
-          const role = response.data.user.role
+        const token = response.data.token
+        const actualRole = response.data.user.role
 
-          // admin goes directly to admin dashboard
-          if (role === 'admin') {
-            window.location.href = '/admin'
-            return
-          }
-
-          // fetch full user profile to check onboarding step
-          const meRes = await api.get('/auth/me', {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-
-          const fullUser = meRes.data.user
-          const step = fullUser.onboardingStep
-
-          if (step === 'completed') {
-            // fully onboarded → go to dashboard
-            window.location.href = '/dashboard'
-          } else if (step === 'assessment' && fullUser.onboardingCourseId) {
-            // chose course but didn't finish assessment
-            window.location.href = `/assessment/${fullUser.onboardingCourseId}`
-          } else {
-            // didn't choose course yet
-            window.location.href = '/courses'
-          }
-
-        } catch (err) {
-          setError(err.response?.data?.message || 'Login failed')
-        } finally {
+        // check if selected role matches actual role
+        if (formData.role !== actualRole) {
+          setError(`Access denied. You are not registered as ${formData.role === 'admin' ? 'an Admin' : 'a Learner'}.`)
           setLoading(false)
+          return
         }
+
+        localStorage.setItem('token', token)
+        localStorage.setItem('user', JSON.stringify(response.data.user))
+
+        // admin goes directly to admin dashboard
+        if (actualRole === 'admin') {
+          window.location.href = '/admin'
+          return
+        }
+
+        // fetch onboarding status
+        const meRes = await api.get('/auth/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+
+        const fullUser = meRes.data.user
+        const step = fullUser.onboardingStep
+
+        if (step === 'completed') {
+          window.location.href = '/dashboard'
+        } else if (step === 'assessment' && fullUser.onboardingCourseId) {
+          window.location.href = `/assessment/${fullUser.onboardingCourseId}`
+        } else {
+          window.location.href = '/courses'
+        }
+
+      } catch (err) {
+        setError(err.response?.data?.message || 'Login failed')
+      } finally {
+        setLoading(false)
       }
+    }
 
       return (
     <div className="min-h-screen bg-[#080808] flex flex-col">

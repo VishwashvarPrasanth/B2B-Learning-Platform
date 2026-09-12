@@ -3,7 +3,6 @@ const dotenv = require('dotenv')
 const cors = require('cors')
 const connectDB = require('./config/db')
 
-
 dotenv.config()
 connectDB()
 
@@ -20,17 +19,19 @@ app.use('/api/roadmap', require('./routes/roadmapRoutes'))// add this
 
 app.use('/api/courses', require('./routes/courseRoutes'))
 app.use('/api/progress', require('./routes/progressRoutes'))
+app.use('/api/videos', require('./routes/videoRoutes'))
 
-
-// cron jobs
-const { Weeklystat } = require('./cron/weeklyStats')
 
 app.use('/api/admin', require('./routes/adminRoutes'))
-require('./queues/emailWorker')
 
-const { createConnection } = require('./queues/connection')
-const testRedis = createConnection()
-testRedis.ping().then(res => console.log('Redis ping:', res)).catch(err => console.log('Redis ping failed:', err.message))
+app.use('/api/enrollment', require('./routes/enrollmentRoutes'))
+
+// require('./queues/emailWorker')
+app.use('/api/quiz', require('./routes/quizRoutes'))
+// const { createConnection } = require('./queues/connection')
+// const testRedis = createConnection()
+// testRedis.ping().then(res => console.log('Redis ping:', res)).catch(err => console.log('Redis ping failed:', err.message))
+const { Weeklystat } = require('./cron/weeklyStats')
 
 app.get('/', (req, res) => {
   res.send('API is running')
