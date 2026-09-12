@@ -244,16 +244,18 @@ const generateRoadmap = async (req, res) => {
     })
     // STEP 12: Send email
 
-    console.log( 'About the user email:',  user.email )
+   console.log('Queuing welcome email for:', user.email)
 
-    sendWelcomeEmail(  user.email,  user.name,  roadmap  )
-      .then(() => { console.log(   'Email sent to:',   user.email ) })
-      .catch(err => {
-        console.log(
-          'Email error:',
-          err.message
-        )
-      })
+      try {
+        await emailQueue.add('sendWelcomeEmail', {
+          to: user.email,
+          name: user.name,
+          roadmap
+        })
+        console.log('Email job queued for:', user.email)
+      } catch (err) {
+        console.log('Failed to queue email job:', err.message)
+      }
 
     // STEP 13: Response
     res.status(201).json({

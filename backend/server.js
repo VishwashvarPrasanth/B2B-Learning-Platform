@@ -26,7 +26,7 @@ app.use('/api/admin', require('./routes/adminRoutes'))
 
 app.use('/api/enrollment', require('./routes/enrollmentRoutes'))
 
-// require('./queues/emailWorker')
+require('./queues/emailWorker')
 app.use('/api/quiz', require('./routes/quizRoutes'))
 // const { createConnection } = require('./queues/connection')
 // const testRedis = createConnection()
